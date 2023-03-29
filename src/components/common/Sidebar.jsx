@@ -8,22 +8,35 @@ import {
 } from "@mui/material";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import AddBoxOutlinedIcon from "@mui/icons-material/AddBoxOutlined";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import assets from "../../assets/index";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import memoApi from "../../api/memoApi";
 import { setMemo } from "../../redux/features/memoSlice";
 
 export default function Sidebar() {
+	const [activeIndex, setActiveIndex] = useState(0);
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
+	const { memoId } = useParams();
 	const user = useSelector((state) => state.user.value);
 	const memos = useSelector((state) => state.memo.value);
 
 	const logout = () => {
 		localStorage.removeItem("token");
 		navigate("/login");
+	};
+
+	const addMemo = async () => {
+		try {
+			const res = await memoApi.create();
+			const newMemos = [res, ...memos];
+			dispatch(setMemo(newMemos));
+			navigate(`memo/${res._id}`);
+		} catch (err) {
+			alert(err);
+		}
 	};
 
 	useEffect(() => {
@@ -36,7 +49,12 @@ export default function Sidebar() {
 			}
 		};
 		getMemos();
-	}, []);
+	}, [dispatch]);
+
+	useEffect(() => {
+		const activeIndex = memos.findIndex((e) => e._id === memoId);
+		setActiveIndex(activeIndex);
+	}, [navigate]);
 	return (
 		<Drawer
 			container={window.document.body}
@@ -96,8 +114,8 @@ export default function Sidebar() {
 						<Typography variant="body2" fontWeight="700">
 							プライベート
 						</Typography>
-						<IconButton>
-							<AddBoxOutlinedIcon></AddBoxOutlinedIcon>
+						<IconButton onClick={addMemo}>
+							<AddBoxOutlinedIcon />
 						</IconButton>
 					</Box>
 				</ListItemButton>
@@ -107,6 +125,7 @@ export default function Sidebar() {
 						component={Link}
 						to={`/memo/${item._id}`}
 						key={item._id}
+						selected={index === activeIndex}
 					>
 						<Typography>
 							{item.icon}

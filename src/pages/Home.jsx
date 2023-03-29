@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 export default function Home() {
 	const [loading, setLoading] = useState(false);
 	const navigate = useNavigate();
+
 	const createMemo = async () => {
 		try {
 			setLoading(true);
